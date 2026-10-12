@@ -1,0 +1,15 @@
+node_modules/
+dist/
+.next/
+out/
+*.tsbuildinfo
+.env*
+!.env.example
+test-results/
+.playwright-mcp/
+.vercel/
+.planning/
+references/
+/*.html
+/*.pdf
+/*_files/

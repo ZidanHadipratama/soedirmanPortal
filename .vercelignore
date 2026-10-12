@@ -1,0 +1,9 @@
+.git/
+.planning/
+references/
+test-results/
+.playwright-mcp/
+/*.html
+/*.pdf
+/*_files/
+node_modules/
