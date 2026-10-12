@@ -9,3 +9,7 @@ test-results/
 node_modules/
 .vercel/
 .env*
+.next/
+dist/
+out/
+*.tsbuildinfo
