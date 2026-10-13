@@ -5,7 +5,8 @@
 - Perubahan: semua popup diganti feedback inline (keterangan inline + fokus otomatis, validasi per baris + scroll ke baris pertama, banner error simpan, error PIN inline, titik status realtime, toast); tombol status bulat H/S/I/DD/TH; header ringkas dengan stepper tanggal, tab sesi + "Insidental" baru, menu akun; tombol utama kontekstual (Simpan n/30 → Tersimpan · Buat laporan WA); kartu elemen DanGrup; meter progres; app bar halaman `/attendance`. Dokumen keputusan diperbarui.
 - Files: src/PilotAttendance.tsx, src/AttendanceStatusButtons.tsx, src/pilot-model.ts, src/pilot-model.test.ts, src/pilot-ui.test.tsx, src/styles.css, app/attendance/page.tsx, docs/attendance-group-2.md.
 - Verifikasi: vitest 102/102, typecheck, build lulus. Screenshot Chromium (API di-mock) desktop 1280 & mobile 390 untuk DanElemen, DanGrup, login.
-- Next: push GitHub + deploy Vercel.
+- Deploy: commit 4a36915 di-push ke GitHub `main`; 8 env Supabase/PIN ditambahkan ke Vercel Production (nilai tidak ditampilkan); deploy production https://soedirmanportal.vercel.app. Smoke test: `/`, `/attendance`, `/api/health` 200; `/api/pilot/session` 401 tanpa login; PIN salah ditolak "PIN tidak sesuai." (bukan 503).
+- Next: uji login PIN asli di HP oleh DanElemen/DanGrup.
 
 ## [progress] 2026-10-13 — Workflow absensi pilot (tahap 1)
 - Task: perbaikan workflow pencatatan `/attendance` (pilot Grup 2).
