@@ -1,5 +1,18 @@
 # Log
 
+## [progress] 2026-10-13 — Tombol status berbentuk pill
+- Task: ubah bentuk tombol kehadiran menjadi pill, lalu push GitHub + deploy Vercel.
+- Perubahan: radius tombol status 999px; di HP grid 5 kolom diganti pill selebar label (satu baris pada lebar ≥390px, wrap rapi di bawahnya).
+- Files: src/styles.css, docs/attendance-group-2.md.
+- Verifikasi: vitest 102/102, typecheck, build lulus; pengukuran Chromium: 1 baris di 390/412px (termasuk saat "Tidak Hadir" terpilih), 2 baris di 360px.
+
+## [progress] 2026-10-13 — Label status lengkap + palet muted
+- Task: label status tidak disingkat; warna absensi diselaraskan dengan desain portal.
+- Perubahan: tombol H/S/I/DD/TH dikembalikan ke label lengkap (grid 5 kolom di HP); palet status muted mengikuti badge portal (kontras 5.1–5.6:1); tombol belum dipilih netral; tab sesi, chip filter, kartu elemen aktif memakai tint biru portal (#edf3fd/#396abb); app bar putih; meter/progres biru lembut; banner, toast, dan error memakai merah/navy muted; radius 7px dan ukuran huruf mengikuti portal.
+- Files: src/AttendanceStatusButtons.tsx, src/PilotAttendance.tsx, src/pilot-ui.test.tsx, src/styles.css, docs/attendance-group-2.md.
+- Verifikasi: vitest 102/102, typecheck, build lulus; screenshot Chromium desktop 1280 dan HP 390 (API di-mock).
+- Next: push GitHub + deploy Vercel (disetujui pengguna, dikerjakan bersama perubahan pill).
+
 ## [progress] 2026-10-13 — Rework UI/UX absensi pilot (tahap 2)
 - Task: rework UI/UX `/attendance` sesuai usulan 1–6 yang disetujui pengguna.
 - Perubahan: semua popup diganti feedback inline (keterangan inline + fokus otomatis, validasi per baris + scroll ke baris pertama, banner error simpan, error PIN inline, titik status realtime, toast); tombol status bulat H/S/I/DD/TH; header ringkas dengan stepper tanggal, tab sesi + "Insidental" baru, menu akun; tombol utama kontekstual (Simpan n/30 → Tersimpan · Buat laporan WA); kartu elemen DanGrup; meter progres; app bar halaman `/attendance`. Dokumen keputusan diperbarui.

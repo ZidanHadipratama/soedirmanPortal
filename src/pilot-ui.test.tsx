@@ -74,10 +74,10 @@ describe("Pilot attendance user flow", () => {
     expect(screen.queryByRole("radiogroup", { name: "Status Anggota 1" })).toBeNull();
     expect(screen.queryByRole("button", { name: /Simpan/ })).toBeNull();
   });
-  it("offers five compact status buttons, sends null for untouched members and saves Dinas Dalam", async () => {
+  it("offers five full-label status buttons, sends null for untouched members and saves Dinas Dalam", async () => {
     render(<PilotAttendance />); await beginRecording();
     const statuses = within(screen.getByRole("radiogroup", { name: "Status Anggota 1" }));
-    expect(statuses.getAllByRole("radio").map(r => r.textContent)).toEqual(["H", "S", "I", "DD", "TH"]);
+    expect(statuses.getAllByRole("radio").map(r => r.textContent)).toEqual(["Hadir", "Sakit", "Izin", "Dinas Dalam", "Tidak Hadir"]);
     expect(statuses.queryAllByRole("radio", { checked: true })).toHaveLength(0);
     fireEvent.click(statuses.getByRole("radio", { name: "Dinas Dalam" }));
     expect(screen.queryByRole("dialog")).toBeNull();

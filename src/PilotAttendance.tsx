@@ -249,7 +249,7 @@ export default function PilotAttendance() {
         const empty = !!draft && requiresAttendanceReason(status) && !row?.reason.trim();
         return <li className={`pilot-member ${attendanceStatusTone(status)}${checkReasons && empty ? " missing" : ""}`} key={m.participant_number}>
           <div className="pilot-member-name"><span className="pilot-number">{m.participant_number}</span><strong>{m.full_name}</strong></div>
-          {draft ? <AttendanceStatusButtons compact name={m.full_name} value={status} disabled={busy} onChange={(next, via) => {
+          {draft ? <AttendanceStatusButtons name={m.full_name} value={status} disabled={busy} onChange={(next, via) => {
             change({ status: next, ...(!requiresAttendanceReason(next) ? { reason: "" } : {}) });
             if (requiresAttendanceReason(next) && via === "pointer") setFocusTarget({ participant: m.participant_number, scroll: false });
           }} /> : <Badge tone={attendanceStatusTone(status)}>{status ?? "Belum dicatat"}</Badge>}
