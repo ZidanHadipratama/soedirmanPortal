@@ -122,7 +122,7 @@ describe("Scoped activity attendance", () => {
       data,
       "pengasuh",
       "e5",
-      rows(["me"], "Belum dicatat"),
+      rows(["me"], null),
     );
     expect(attendanceFor(data, "e5", "me")).toBeUndefined();
     expect(attendanceFor(data, "e1", "me")).toBeDefined();
@@ -163,12 +163,12 @@ describe("Accurate report template", () => {
         "• Hadir      : 1 Siswa",
         "• Sakit      : 1 Siswa",
         "• Izin       : 0 Siswa",
-        "• Dinas Luar : 0 Siswa",
+        "• Dinas Dalam : 0 Siswa",
         "• Total      : 2 Siswa (50% Kehadiran)",
         "",
         "*📌 RINCIAN PER ELEMEN:*",
-        "1. Elemen C : Hadir 1/1 (S:0, I:0, DL:0)",
-        "2. Elemen D : Hadir 0/1 (S:1, I:0, DL:0)",
+        "1. Elemen C : Hadir 1/1 (S:0, I:0, DD:0)",
+        "2. Elemen D : Hadir 0/1 (S:1, I:0, DD:0)",
         "",
         "*📋 DAFTAR SISWA BERHALANGAN / KETERANGAN:*",
         "1. Alya Rahma (2026.0152, Elemen D) — Sakit: Demam",
@@ -216,7 +216,7 @@ describe("Accurate report template", () => {
       { personId: "me", status: "Hadir", reason: "" },
       { personId: "s2", status: "Sakit", reason: "Demam" },
       { personId: "s3", status: "Izin", reason: "Keluarga" },
-      { personId: "s6", status: "Dinas Luar", reason: "Penugasan" },
+      { personId: "s6", status: "Dinas Dalam", reason: "Penugasan" },
     ]);
     const before = JSON.stringify(data);
     const r = buildAttendanceReport(

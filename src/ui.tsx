@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ReactNode } from "react";
+import { useEffect, useId, useRef, type ReactNode } from "react";
 import { X, Search, Plus, ArrowUpRight, Bookmark, Check } from "lucide-react";
 
 export function Badge({
@@ -130,12 +130,15 @@ export function Modal({
   title,
   children,
   onClose,
+  tone,
 }: {
   title: string;
   children: ReactNode;
   onClose: () => void;
+  tone?: "danger";
 }) {
   const ref = useRef<HTMLDialogElement>(null);
+  const titleId = useId();
   useEffect(() => {
     const el = ref.current!;
     const previous = document.activeElement as HTMLElement | null;
@@ -148,8 +151,8 @@ export function Modal({
   return (
     <dialog
       ref={ref}
-      className="modal"
-      aria-labelledby="modal-title"
+      className={`modal${tone === "danger" ? " modal-danger" : ""}`}
+      aria-labelledby={titleId}
       onCancel={onClose}
       onClick={(e) => {
         if (e.target === ref.current) {
@@ -165,7 +168,7 @@ export function Modal({
       }}
     >
       <div className="modal-head">
-        <h2 id="modal-title">{title}</h2>
+        <h2 id={titleId}>{title}</h2>
         <button className="icon-button" aria-label="Tutup" onClick={onClose}>
           <X size={21} />
         </button>

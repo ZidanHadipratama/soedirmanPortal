@@ -203,7 +203,7 @@ export type Attendance = {
   eventId: string;
   time: string;
   status:
-    "Hadir" | "Sakit" | "Izin" | "Dinas Luar" | "Tidak Hadir" | "Belum dicatat";
+    "Hadir" | "Sakit" | "Izin" | "Dinas Dalam" | "Tidak Hadir" | null;
   reason: string;
   recordedBy: string;
   recordedAt: string;

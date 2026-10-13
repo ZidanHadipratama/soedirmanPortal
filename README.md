@@ -2,7 +2,24 @@
 
 Prototipe interaktif superapp P3MD menggunakan **Next.js App Router, React, dan TypeScript**. Portal menjadi pintu masuk ke aplikasi tersendiri; setiap aplikasi mempunyai halaman dan alur kerja sendiri. Beranda berisi aplikasi favorit, agenda harian, pengingat presensi, dan kabar terbaru.
 
-## Menjalankan
+## Pilot Supabase: absensi Grup 2
+
+Absensi Grup 2 kini memiliki akses PIN dan penyimpanan Supabase. Buka `/attendance` untuk akses komandan, atau aplikasi Presensi di portal saat konfigurasi Supabase tersedia. Layanan lain masih memakai prototipe browser seperti dijelaskan di bawah.
+
+1. Isi `.env.local` mengikuti `.env.example`. Jangan menghapus konfigurasi lama.
+2. Jalankan `npm run supabase:migrate`. Skrip menggunakan sesi CLI yang sudah login dan memilih proyek dari URL dalam konfigurasi, tanpa mencetak URL/key.
+3. Jalankan `npm run supabase:setup` untuk mengimpor roster lokal dan membuat empat akun PIN. Data impor tersedia di `private/`, yang tidak masuk Git.
+4. Jalankan `npm run dev`, lalu buka `/attendance`.
+
+DanElemen mencatat 30 anggota elemennya, sedangkan DanGrup memantau 90 anggota melalui Supabase Realtime. PIN menentukan identitas dan cakupan akses; simulasi peran pada portal tidak mengubah kewenangan API/database. Laporan menggunakan template WA yang sudah tersedia dan membuka WhatsApp dengan pesan siap kirim.
+
+Untuk mengganti PIN, jalankan `npm run pins:rotate`, lalu `npm run supabase:setup`, dan mulai ulang aplikasi. Skrip rotasi menampilkan empat PIN baru; key Supabase dan rahasia autentikasi tidak dicetak. PIN tidak dimasukkan ke Git, dokumentasi, atau bundle browser. Sesi akses berlangsung hingga token Supabase kedaluwarsa; setelah itu masuk kembali dengan PIN.
+
+Pengujian integrasi nyata: `npm run supabase:verify` (default server `http://localhost:3001`, dapat diubah melalui `PILOT_TEST_BASE_URL`). Skrip membuat satu sesi insidental dengan nama unik pada tanggal 2099-12-30, menguji API dan realtime, lalu menghapus hanya sesi uji tersebut. Verifikasi lokal: `npm test`, `npm run typecheck`, dan `npm run build`.
+
+Rincian keputusan dan verifikasi pilot tersedia di [docs/attendance-group-2.md](docs/attendance-group-2.md).
+
+## Menjalankan prototipe portal
 
 Gunakan Node.js 22.13+ dan npm. Proyek dikembangkan dan diuji dengan Node.js 26.
 
@@ -24,7 +41,7 @@ npm start
 
 | Aplikasi         | Alur yang tersedia                                                                                                                                                             |
 | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Presensi         | Pencatatan per kegiatan/sesi oleh List Merah sesuai cakupan, Polisi Serdik dan pengasuh; H/S/I/DL/Tidak Hadir; alasan berhalangan; rekap; CSV; pratinjau/copy/WhatsApp laporan |
+| Presensi         | Pencatatan per kegiatan/sesi oleh List Merah sesuai cakupan, Polisi Serdik dan pengasuh; H/S/I/DD/Tidak Hadir; alasan berhalangan; rekap; CSV; pratinjau/copy/WhatsApp laporan |
 | Perizinan        | Pengajuan dengan rentang tanggal, status, keputusan dan tanggapan pengasuh/Polisi Serdik                                                                                       |
 | Agenda           | Konteks kegiatan bersama: jadwal, arahan, pakaian/perlengkapan, pendaftaran, presensi sesi terkait, izin disetujui pada tanggal kegiatan, dan dokumentasi                      |
 | Kabar Soedirman  | Pengumuman, informasi, notulensi, pencarian, publikasi, simpan untuk nanti                                                                                                     |
@@ -98,7 +115,7 @@ Pendekatan portal browser menggunakan Client Component yang dimuat dinamis, meng
 
 1. Pengelola membuat kegiatan di Agenda, mengisi tanggal/jam, cakupan group/elemen, arahan dan pakaian; aktifkan pencatatan presensi bila diperlukan.
 2. List Merah (sesuai cakupan), Polisi Serdik atau pengasuh membuka **Catat presensi**. Pendaftaran kegiatan tidak dihitung sebagai hadir.
-3. Pilih status anggota dan isi alasan untuk Sakit/Izin/Dinas Luar/Tidak Hadir. **Tandai semua hadir** dan **Terapkan izin disetujui** adalah aksi eksplisit pada draf.
+3. Pilih status anggota dan isi alasan untuk Sakit/Izin/Dinas Dalam/Tidak Hadir. **Tandai semua hadir** dan **Terapkan izin disetujui** adalah aksi eksplisit pada draf.
 4. **Simpan pencatatan** menyimpan status per kegiatan serta pencatat/waktunya. Pagi dan malam mempunyai record terpisah.
 5. **Laporan WhatsApp** menyusun template dari roster aktual, tanggal/jam kegiatan, per-elemen, persentase dan alasan berhalangan. Nama penerima dapat diubah; nomor WhatsApp opsional menggunakan kode negara.
 6. Bila masih ada anggota belum dicatat, laporan diberi label draf dan tombol WhatsApp dinonaktifkan. NIHIL hanya muncul jika roster tidak kosong dan seluruh anggota tercatat Hadir.

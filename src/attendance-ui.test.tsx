@@ -88,11 +88,9 @@ describe("Attendance interface acceptance", () => {
     await user.click(
       screen.getByRole("button", { name: "Tandai semua hadir" }),
     );
-    await user.selectOptions(
-      screen.getByLabelText("Status Nadia Putri"),
-      "Sakit",
-    );
-    await user.type(screen.getByLabelText("Keterangan Nadia Putri"), "Demam");
+    await user.click(within(screen.getByRole("radiogroup", { name: "Status Nadia Putri" })).getByRole("radio", { name: "Sakit" }));
+    await user.type(screen.getByLabelText("Keterangan untuk Nadia Putri"), "Demam");
+    await user.click(screen.getByRole("button", { name: "Gunakan keterangan" }));
     await user.click(screen.getByRole("button", { name: "Simpan pencatatan" }));
     await user.click(screen.getByRole("button", { name: "Laporan WhatsApp" }));
     const preview = screen.getByLabelText(
@@ -148,9 +146,7 @@ describe("Attendance interface acceptance", () => {
     render(<Harness role="pengasuh" initial={initial} />);
     await user.selectOptions(screen.getByLabelText("Group"), "Group 2");
     await user.click(screen.getByRole("button", { name: "Catat presensi" }));
-    expect(
-      (screen.getByLabelText("Status Alya Rahma") as HTMLSelectElement).value,
-    ).toBe("Belum dicatat");
+    expect(within(screen.getByRole("radiogroup", { name: "Status Alya Rahma" })).queryAllByRole("radio", { checked: true })).toHaveLength(0);
     await user.click(
       screen.getByRole("button", { name: "Tandai semua hadir" }),
     );
@@ -158,8 +154,8 @@ describe("Attendance interface acceptance", () => {
       screen.getByRole("button", { name: "Terapkan izin disetujui" }),
     );
     expect(
-      (screen.getByLabelText("Status Alya Rahma") as HTMLSelectElement).value,
-    ).toBe("Izin");
+      within(screen.getByRole("radiogroup", { name: "Status Alya Rahma" })).getByRole("radio", { name: "Izin" }).getAttribute("aria-checked"),
+    ).toBe("true");
     await user.click(screen.getByRole("button", { name: "Simpan pencatatan" }));
     await user.click(screen.getByRole("button", { name: "Laporan WhatsApp" }));
     const message = (
@@ -168,21 +164,20 @@ describe("Attendance interface acceptance", () => {
     expect(message).toContain(initial.leaves[0].reason);
     expect(message).not.toContain("✅ *NIHIL*");
   });
-  it("retains the draft and focuses the validation error when a reason is missing", async () => {
+  it("retains the draft and lists the member in a red popup when a reason is missing", async () => {
     const user = userEvent.setup();
     render(<Harness role="dangroup" />);
     await user.click(screen.getByRole("button", { name: "Catat presensi" }));
-    await user.selectOptions(
-      screen.getByLabelText("Status Arif Pratama"),
-      "Sakit",
-    );
+    await user.click(within(screen.getByRole("radiogroup", { name: "Status Arif Pratama" })).getByRole("radio", { name: "Sakit" }));
+    await user.click(within(screen.getByRole("dialog", { name: "Keterangan wajib diisi" })).getByRole("button", { name: "Tutup" }));
     await user.click(screen.getByRole("button", { name: "Simpan pencatatan" }));
     const error = screen.getByRole("alert");
     expect(error.textContent).toContain("keterangan");
-    await waitFor(() => expect(document.activeElement).toBe(error));
+    expect(screen.getByRole("dialog", { name: "Pencatatan perlu diperiksa" }).classList.contains("modal-danger")).toBe(true);
+    expect(within(screen.getByRole("dialog", { name: "Pencatatan perlu diperiksa" })).getByRole("listitem").textContent).toBe("Arif Pratama");
     expect(
-      (screen.getByLabelText("Status Arif Pratama") as HTMLSelectElement).value,
-    ).toBe("Sakit");
+      within(screen.getByRole("radiogroup", { name: "Status Arif Pratama" })).getByRole("radio", { name: "Sakit" }).getAttribute("aria-checked"),
+    ).toBe("true");
   });
   it("connects an activity detail to the exact attendance session", () => {
     window.history.replaceState({}, "", "#/app/schedule?activity=e5");

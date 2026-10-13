@@ -69,7 +69,7 @@ export function migrateStore(value: unknown): Store {
     attendance = legacy.map((a) => ({
       ...a,
       eventId: "legacy-daily-" + a.date,
-      status: a.status === "Belum hadir" ? "Belum dicatat" : a.status,
+      status: a.status === "Belum hadir" ? null : a.status,
       reason: a.status === "Izin" ? "Izin pada catatan harian lama" : "",
       recordedBy: "Arsip versi sebelumnya",
       recordedAt: "",
@@ -89,11 +89,12 @@ export function migrateStore(value: unknown): Store {
           : evening.id,
       });
   } else {
-    attendance = (stored.attendance as Attendance[]).map((a) => {
+    attendance = (stored.attendance as (Omit<Attendance, "status"> & { status: Attendance["status"] | "Dinas Luar" | "Belum dicatat" })[]).map((a) => {
       if (!a || typeof a.eventId !== "string" || typeof a.personId !== "string")
         throw new Error("Data presensi kegiatan tidak valid.");
       return {
         ...a,
+        status: a.status === "Dinas Luar" ? "Dinas Dalam" : a.status === "Belum dicatat" ? null : a.status,
         reason: a.reason ?? "",
         recordedBy: a.recordedBy ?? "",
         recordedAt: a.recordedAt ?? "",

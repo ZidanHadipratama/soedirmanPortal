@@ -14,12 +14,11 @@ import {
   type Store,
 } from "./model";
 
-export const attendanceStatuses: Attendance["status"][] = [
-  "Belum dicatat",
+export const attendanceStatuses: NonNullable<Attendance["status"]>[] = [
   "Hadir",
   "Sakit",
   "Izin",
-  "Dinas Luar",
+  "Dinas Dalam",
   "Tidak Hadir",
 ];
 export function activityRoster(
@@ -81,16 +80,16 @@ export function recordAttendance(
     if (seen.has(entry.personId))
       throw new Error("Serdik tercatat lebih dari sekali.");
     seen.add(entry.personId);
-    if (!attendanceStatuses.includes(entry.status))
+    if (entry.status !== null && !attendanceStatuses.includes(entry.status))
       throw new Error("Status presensi tidak valid.");
     if (
-      !["Hadir", "Belum dicatat"].includes(entry.status) &&
+      entry.status !== null && entry.status !== "Hadir" &&
       !entry.reason.trim()
     )
       throw new Error("Lengkapi keterangan untuk serdik yang berhalangan.");
   }
   const updates = entries
-    .filter((e) => e.status !== "Belum dicatat")
+    .filter((e) => e.status !== null)
     .map((entry) => ({
       id:
         data.attendance.find(
@@ -129,7 +128,7 @@ export function recap(data: Store, event: Event, members: Person[]) {
   const count = (status: Attendance["status"]) =>
     rows.filter((r) => r.record?.status === status).length;
   const pending = rows.filter(
-    (r) => !r.record || r.record.status === "Belum dicatat",
+    (r) => r.record?.status == null,
   ).length;
   return {
     rows,
@@ -137,7 +136,7 @@ export function recap(data: Store, event: Event, members: Person[]) {
     hadir: count("Hadir"),
     sakit: count("Sakit"),
     izin: count("Izin"),
-    dinas: count("Dinas Luar"),
+    dinas: count("Dinas Dalam"),
     absent: count("Tidak Hadir"),
     pending,
     percentage: members.length
@@ -177,6 +176,19 @@ export function buildAttendanceReport(
   if (!visibleEvent(role, event))
     throw new Error("Kegiatan berada di luar cakupan akses.");
   const members = activityRoster(event, role, group, element);
+  return buildRosterAttendanceReport(
+    data, event, group, members,
+    element || (role === "danelemen" ? currentPerson.element : undefined),
+  );
+}
+// Callers supply an already authorized roster, including the live Supabase pilot.
+export function buildRosterAttendanceReport(
+  data: Store,
+  event: Event,
+  group: string,
+  members: Person[],
+  element?: string,
+) {
   const stats = recap(data, event, members);
   const config = data.reporting;
   const groupLabel = group.replace(/^Group /, "Grup ");
@@ -184,7 +196,6 @@ export function buildAttendanceReport(
   const session = activitySession(event);
   const scopedElement =
     element ||
-    (role === "danelemen" ? currentPerson.element : undefined) ||
     (event.element !== "Semua elemen" ? event.element : undefined);
   const date = new Date(event.date + "T12:00:00+07:00").toLocaleDateString(
     "id-ID",
@@ -232,7 +243,7 @@ export function buildAttendanceReport(
     "• Hadir      : " + stats.hadir + " Siswa",
     "• Sakit      : " + stats.sakit + " Siswa",
     "• Izin       : " + stats.izin + " Siswa",
-    "• Dinas Luar : " + stats.dinas + " Siswa",
+    "• Dinas Dalam : " + stats.dinas + " Siswa",
     ...(stats.absent ? ["• Tidak Hadir: " + stats.absent + " Siswa"] : []),
     ...(stats.pending ? ["• Belum dicatat: " + stats.pending + " Siswa"] : []),
     "• Total      : " +
@@ -257,7 +268,7 @@ export function buildAttendanceReport(
         r.sakit +
         ", I:" +
         r.izin +
-        ", DL:" +
+        ", DD:" +
         r.dinas +
         (r.absent ? ", TH:" + r.absent : "") +
         (r.pending ? ", Belum:" + r.pending : "") +
@@ -268,7 +279,7 @@ export function buildAttendanceReport(
     "*📋 DAFTAR SISWA BERHALANGAN / KETERANGAN:*",
   ];
   const exceptions = stats.rows.filter(
-    (r) => r.record && !["Hadir", "Belum dicatat"].includes(r.record.status),
+    (r) => r.record?.status != null && r.record.status !== "Hadir",
   );
   if (stats.complete && stats.hadir === stats.total)
     lines.push(
@@ -299,7 +310,7 @@ export function buildAttendanceReport(
       lines.push(
         "Belum dicatat: " +
           stats.rows
-            .filter((r) => !r.record || r.record.status === "Belum dicatat")
+            .filter((r) => r.record?.status == null)
             .map((r) => reportText(r.person.name))
             .join(", ") +
           ".",
@@ -389,7 +400,7 @@ export function homeActions(
       (e) =>
         e.attendanceRequired &&
         (!attendanceFor(data, e.id, "me") ||
-          attendanceFor(data, e.id, "me")?.status === "Belum dicatat"),
+          attendanceFor(data, e.id, "me")?.status == null),
     );
     if (e)
       result.push({

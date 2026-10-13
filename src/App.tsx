@@ -38,6 +38,7 @@ import {
   type Role,
 } from "./model";
 import { useStore } from "./store";
+import PilotAttendance from "./PilotAttendance";
 import { activityHref, homeActions } from "./operations";
 import { HomeActions, NextActivityCard } from "./HomeActions";
 import { Avatar, Badge, Empty, Modal, SearchInput, SectionTitle } from "./ui";
@@ -57,7 +58,7 @@ import {
 } from "./community";
 
 const appPages = {
-  attendance: AttendancePage,
+  attendance: process.env.NEXT_PUBLIC_SUPABASE_URL ? PilotAttendance : AttendancePage,
   leave: LeavePage,
   schedule: SchedulePage,
   information: InformationPage,

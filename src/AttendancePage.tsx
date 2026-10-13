@@ -1,4 +1,4 @@
-import { useRef, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import {
   Check,
   ClipboardCopy,
@@ -15,13 +15,11 @@ import {
   localDate,
   policies,
   visibleEvent,
-  type Attendance,
 } from "./model";
 import {
   activityHref,
   activityRoster,
   approvedLeaveFor,
-  attendanceStatuses,
   buildAttendanceReport,
   recap,
   recordAttendance,
@@ -30,6 +28,8 @@ import {
 } from "./operations";
 import { Avatar, Badge, Empty, Field, Modal, SectionTitle } from "./ui";
 import type { PageProps } from "./workflows";
+import AttendanceStatusButtons, { attendanceStatusTone } from "./AttendanceStatusButtons";
+import { AttendanceErrorPopup, AttendanceReasonPopup, requiresAttendanceReason } from "./AttendanceNotices";
 
 function requestedActivity() {
   return new URLSearchParams(
@@ -53,7 +53,7 @@ export default function AttendancePage({
   );
   const [draft, setDraft] = useState<AttendanceEntry[] | null>(null);
   const [error, setError] = useState("");
-  const errorRef = useRef<HTMLDivElement>(null);
+  const [reasonPersonId, setReasonPersonId] = useState<string | null>(null);
   const [reportOpen, setReportOpen] = useState(false);
   const [recipient, setRecipient] = useState("");
   const [phone, setPhone] = useState("");
@@ -81,6 +81,9 @@ export default function AttendancePage({
   const members = event
     ? activityRoster(event, role, activeGroup, activeElement)
     : [];
+  const reasonPerson = members.find(p => p.id === reasonPersonId);
+  const reasonEntry = draft?.find(r => r.personId === reasonPersonId);
+  const missingNames = (draft || []).filter(r => requiresAttendanceReason(r.status) && !r.reason.trim()).map(r => members.find(p => p.id === r.personId)?.name || r.personId);
   const stats = event ? recap(data, event, members) : null;
   const canEdit = manage && event && !event.archived && members.length > 0;
   const reportData = {
@@ -128,7 +131,7 @@ export default function AttendancePage({
     setDraft(
       stats.rows.map((r) => ({
         personId: r.person.id,
-        status: r.record?.status ?? "Belum dicatat",
+        status: r.record?.status ?? null,
         reason: r.record?.reason ?? "",
       })),
     );
@@ -153,7 +156,6 @@ export default function AttendancePage({
       notify("Presensi kegiatan tersimpan. Rekap dan laporan diperbarui.");
     } catch (err) {
       setError((err as Error).message);
-      requestAnimationFrame(() => errorRef.current?.focus());
     }
   }
   function openReport() {
@@ -168,7 +170,7 @@ export default function AttendancePage({
       await navigator.clipboard.writeText(report.message);
       notify("Laporan disalin.");
     } catch {
-      notify(
+      setError(
         "Clipboard tidak tersedia. Pilih dan salin teks pada pratinjau laporan.",
       );
     }
@@ -383,16 +385,6 @@ export default function AttendancePage({
               </div>
             </div>
             <form onSubmit={save}>
-              {error && (
-                <div
-                  className="form-error"
-                  role="alert"
-                  tabIndex={-1}
-                  ref={errorRef}
-                >
-                  {error}
-                </div>
-              )}
               {draft && (
                 <div className="draft-tools">
                   <button
@@ -481,30 +473,25 @@ export default function AttendancePage({
                           </td>
                           <td>
                             {row ? (
-                              <select
-                                aria-label={"Status " + person.name}
-                                value={row.status}
-                                onChange={(e) =>
+                              <AttendanceStatusButtons
+                                name={person.name} value={row.status}
+                                onChange={(status) => {
                                   update(person.id, {
-                                    status: e.target
-                                      .value as Attendance["status"],
+                                    status,
                                     reason:
-                                      e.target.value === "Hadir"
+                                      status === null || status === "Hadir"
                                         ? ""
                                         : row.reason,
-                                  })
-                                }
-                              >
-                                {attendanceStatuses.map((status) => (
-                                  <option key={status}>{status}</option>
-                                ))}
-                              </select>
+                                  });
+                                  if (requiresAttendanceReason(status)) setReasonPersonId(person.id);
+                                }}
+                              />
                             ) : (
                               <Badge
                                 tone={
-                                  !record || record.status === "Belum dicatat"
+                                  record?.status == null
                                     ? "warning"
-                                    : ""
+                                    : attendanceStatusTone(record.status)
                                 }
                               >
                                 {record?.status ?? "Belum dicatat"}
@@ -517,9 +504,7 @@ export default function AttendancePage({
                                 aria-label={"Keterangan " + person.name}
                                 placeholder="Alasan / keterangan"
                                 value={row.reason}
-                                disabled={["Hadir", "Belum dicatat"].includes(
-                                  row.status,
-                                )}
+                                disabled={row.status === null || row.status === "Hadir"}
                                 maxLength={300}
                                 onChange={(e) =>
                                   update(person.id, { reason: e.target.value })
@@ -606,15 +591,11 @@ export default function AttendancePage({
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              onBlur={() => { if (phoneError) setError(phoneError); }}
               placeholder="628…; kosongkan untuk memilih penerima di WhatsApp"
               aria-invalid={!!phoneError}
             />
           </Field>
-          {phoneError && (
-            <p className="form-error" role="alert">
-              {phoneError}
-            </p>
-          )}
           <Field label="Pratinjau laporan">
             <textarea
               className="report-preview"
@@ -657,6 +638,8 @@ export default function AttendancePage({
           </p>
         </Modal>
       )}
+      {reasonPerson && reasonEntry && <AttendanceReasonPopup key={reasonPerson.id} name={reasonPerson.name} status={reasonEntry.status} value={reasonEntry.reason} maxLength={300} onChange={reason => update(reasonPerson.id, { reason })} onClose={() => setReasonPersonId(null)} />}
+      {error && <AttendanceErrorPopup message={error} members={error === "Lengkapi keterangan untuk serdik yang berhalangan." ? missingNames : []} onClose={() => setError("")} />}
     </>
   );
 }

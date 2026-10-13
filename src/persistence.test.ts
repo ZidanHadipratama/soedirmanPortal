@@ -39,6 +39,18 @@ function legacy() {
 }
 afterEach(() => vi.unstubAllGlobals());
 describe("Reversible storage migration", () => {
+  it("maps the old unrecorded placeholder to null", () => {
+    const original = { ...createSeed(), attendance: [{ id: "pending", personId: "me", eventId: "e1", date: "2026-10-13", time: "06:00", status: "Belum dicatat", reason: "", recordedBy: "Komandan", recordedAt: "2026-10-13T00:00:00Z" }] };
+    expect(migrateStore(original).attendance[0]).toEqual({ ...original.attendance[0], status: null });
+    expect(original.attendance[0].status).toBe("Belum dicatat");
+  });
+  it("renames legacy Dinas Luar without changing attribution or the source data", () => {
+    const original = { ...createSeed(), attendance: [{ id: "old-duty", personId: "me", eventId: "e1", date: "2026-10-13", time: "06:00", status: "Dinas Luar", reason: "Penugasan", recordedBy: "Komandan", recordedAt: "2026-10-13T00:00:00Z" }] };
+    const migrated = migrateStore(original);
+    expect(migrated.attendance[0]).toEqual({ ...original.attendance[0], status: "Dinas Dalam" });
+    expect(original.attendance[0].status).toBe("Dinas Luar");
+    expect(migrateStore(migrated)).toEqual(migrated);
+  });
   it("preserves old attendance as archive rather than guessing an apel session", () => {
     const original = legacy();
     const before = JSON.stringify(original);
@@ -51,7 +63,7 @@ describe("Reversible storage migration", () => {
       time: "06:45",
       status: "Hadir",
     });
-    expect(migrated.attendance[1].status).toBe("Belum dicatat");
+    expect(migrated.attendance[1].status).toBeNull();
     expect(
       migrated.events.find((e) => e.id === "legacy-daily-2026-10-01")?.archived,
     ).toBe(true);
